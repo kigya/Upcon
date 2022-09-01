@@ -15,4 +15,9 @@
     <string name="no_results_found">No results found</string>
     <string name="search_instructions">Tap the magnifying glass to start searching</string>
     <string name="delete_all_bookmarks">Delete all bookmarks</string>
+    <string name="article_saved">Saved!</string>
+    <string name="article_removed">Removed!</string>
+    <string name="home">Home</string>
+    <string name="search_menu">Search</string>
+    <string name="bookmarks_menu">Bookmarks</string>
 </resources>

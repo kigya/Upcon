@@ -2,26 +2,30 @@ package com.kigya.upcon.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.kigya.upcon.R
 import com.kigya.upcon.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
-    private lateinit var binding: ActivityMainBinding
+    private val viewBinding by viewBinding(ActivityMainBinding::bind)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        with(viewBinding) {
+            newsNavHostFragment
+            bottomNavigationView.setupWithNavController(getNavController())
+        }
+    }
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.newsNavHostFragment) as NavHostFragment
-        val navController = navHostFragment.navController
-
-        binding.bottomNavigationView.setupWithNavController(navController)
+    private fun getNavController(): NavController {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.newsNavHostFragment) as NavHostFragment
+        return navHostFragment.navController
     }
 }

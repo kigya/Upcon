@@ -11,7 +11,7 @@ interface NewsAPI {
     suspend fun getBreakingNews(
         @Query(APIConstants.COUNTRY_PARAM) counryCode: String = "us",
         @Query(APIConstants.PAGE_PARAM) page: Int = 1
-        ): Response<NewsResponse>
+    ): Response<NewsResponse>
 
     @GET(APIConstants.EVERYTHING_PATH)
     suspend fun searchForNews(

@@ -3,36 +3,39 @@ package com.kigya.upcon.ui.article
 import android.os.Bundle
 import android.view.View
 import android.webkit.WebViewClient
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.kigya.upcon.ui.NewsViewModel
-import com.kigya.upcon.utils.viewbinding.ViewBindingFragment
-import com.google.android.material.snackbar.Snackbar
 import com.kigya.upcon.databinding.FragmentArticleBinding
 import androidx.navigation.fragment.navArgs
-import com.kigya.upcon.models.Article
+import by.kirich1409.viewbindingdelegate.viewBinding
+import com.kigya.upcon.R
+import com.kigya.upcon.utils.showToast
 
-class ArticleFragment :
-    ViewBindingFragment<FragmentArticleBinding>(FragmentArticleBinding::inflate) {
+class ArticleFragment : Fragment(R.layout.fragment_article) {
 
     private val viewModel: NewsViewModel by activityViewModels()
+    private val viewBinding by viewBinding(FragmentArticleBinding::bind)
     private val args: ArticleFragmentArgs by navArgs()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val article: Article = args.article
+        with(viewBinding) {
+            setupWebView()
+            fab.setOnClickListener { addToFavorites() }
+        }
+    }
 
-        binding.apply {
+    private fun addToFavorites() {
+        viewModel.saveArticle(args.article)
+        showToast(getString(R.string.article_saved))
+    }
 
-            webView.apply {
-                webViewClient = WebViewClient()
-                article.url?.let { loadUrl(it) }
-            }
-
-            fab.setOnClickListener {
-                viewModel.saveArticle(article)
-                Snackbar.make(view, "Article saved successfully", Snackbar.LENGTH_SHORT).show()
-            }
+    private fun FragmentArticleBinding.setupWebView() {
+        webView.apply {
+            webViewClient = WebViewClient()
+            args.article.url?.let { loadUrl(it) }
         }
     }
 }

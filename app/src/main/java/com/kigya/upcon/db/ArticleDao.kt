@@ -6,8 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ArticleDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrUpdate(article: Article): Long
+
+    @Upsert
+    suspend fun upsertArticle(article: Article): Long
 
     @Query("SELECT * FROM articles")
     fun getAllArticles(): Flow<List<Article>>

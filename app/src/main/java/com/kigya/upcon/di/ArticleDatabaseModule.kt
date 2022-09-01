@@ -22,8 +22,7 @@ object ArticleDatabaseModule {
         context,
         ArticleDatabase::class.java,
         "article_db.db"
-    )
-        .build()
+    ).build()
 
     @Singleton
     @Provides

@@ -13,16 +13,18 @@ import kotlinx.coroutines.launch
 import retrofit2.Response
 import javax.inject.Inject
 
+typealias NewsResourceFlow = MutableStateFlow<Resource<NewsResponse>>
+
 @HiltViewModel
 class NewsViewModel @Inject constructor(
     private val newsRepository: NewsRepository,
 ) : ViewModel() {
 
-    private val _breakingNews: MutableStateFlow<Resource<NewsResponse>> =
+    private val _breakingNews: NewsResourceFlow =
         MutableStateFlow(Resource.Loading())
     val breakingNews = _breakingNews.asStateFlow()
 
-    private val _searchNews: MutableStateFlow<Resource<NewsResponse>> =
+    private val _searchNews: NewsResourceFlow =
         MutableStateFlow(Resource.Loading())
     val searchNews = _searchNews.asStateFlow()
 
@@ -33,10 +35,9 @@ class NewsViewModel @Inject constructor(
         getBreakingNews("us")
     }
 
-    fun getBreakingNews(countryCode: String) {
+    private fun getBreakingNews(countryCode: String) {
         viewModelScope.launch {
             _breakingNews.value = Resource.Loading()
-
             val response = newsRepository.getBreakingNews(countryCode, _breakingNewsPage)
             _breakingNews.value = handleNewsResponse(response)
         }
@@ -45,7 +46,6 @@ class NewsViewModel @Inject constructor(
     fun searchNews(query: String) {
         viewModelScope.launch {
             _searchNews.value = Resource.Loading()
-
             val response = newsRepository.searchNews(query, _searchNewsPage)
             _searchNews.value = handleNewsResponse(response)
         }
@@ -53,7 +53,7 @@ class NewsViewModel @Inject constructor(
 
     fun saveArticle(article: Article) {
         viewModelScope.launch {
-            newsRepository.insertOrUpdate(article)
+            newsRepository.upsertArticle(article)
         }
     }
 

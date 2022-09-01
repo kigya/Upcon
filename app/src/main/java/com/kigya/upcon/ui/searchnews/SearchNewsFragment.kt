@@ -1,10 +1,12 @@
 package com.kigya.upcon.ui.searchnews
 
 import android.os.Bundle
+import android.text.Editable
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -18,55 +20,65 @@ import com.kigya.upcon.models.NewsResponse
 import com.kigya.upcon.ui.NewsViewModel
 import com.kigya.upcon.utils.Resource
 import com.kigya.upcon.utils.TAG
-import com.kigya.upcon.utils.viewbinding.ViewBindingFragment
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import by.kirich1409.viewbindingdelegate.viewBinding
+import com.kigya.upcon.models.Article
+import com.kigya.upcon.utils.mainScopeDelayLaunch
 
-class SearchNewsFragment: ViewBindingFragment<FragmentSearchNewsBinding>(FragmentSearchNewsBinding::inflate) {
+class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
 
     private val viewModel: NewsViewModel by activityViewModels()
+    private val viewBinding by viewBinding(FragmentSearchNewsBinding::bind)
     private lateinit var newsAdapter: NewsAdapter
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle? ) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupRecyclerViewAdapter()
+        with(viewBinding) {
+            setupRecyclerViewAdapter()
 
-        newsAdapter.setOnItemClickListener {
-            val bundle = Bundle().apply {
-                putSerializable("article", it)
-            }
-
-            findNavController().navigate(
-                R.id.action_searchNewsFragment_to_articleFragment,
-                bundle
-            )
-        }
-
-        var job: Job? = null
-        binding.etSearch.addTextChangedListener { editable ->
-            job?.cancel()
-            job = MainScope().launch {
-                delay(500L)
-
-                editable?.let {
-                    if (editable.isNotEmpty()) {
-                        viewModel.searchNews(editable.toString())
-                    }
+            collectLatestLifecycleFlow(viewModel.searchNews) { response ->
+                when (response) {
+                    is Resource.Success -> handleSuccessfulResponse(response)
+                    is Resource.Error -> handleErrorResponse(response)
+                    is Resource.Loading -> handleLoading()
                 }
             }
         }
 
-        collectLatestLifeCycleFlow(viewModel.searchNews) { response ->
-            when (response) {
-                is Resource.Success -> handleSuccessfulResponse(response)
-                is Resource.Error -> handleErrorResponse(response)
-                is Resource.Loading -> handleLoading()
-            }
+        var job: Job? = null
+        viewBinding.etSearch.addTextChangedListener { editable ->
+            job?.cancel()
+            job = search(editable)
+        }
+
+        newsAdapter.setOnItemClickListener(this::navigateUp)
+
+    }
+
+    private fun search(editable: Editable?) = mainScopeDelayLaunch {
+        editable?.let { if (editable.isNotEmpty()) viewModel.searchNews(editable.toString()) }
+    }
+
+    private fun navigateUp(it: Article) {
+        val bundle = Bundle().apply {
+            putSerializable("article", it)
+        }
+
+        findNavController().navigate(
+            R.id.action_searchNewsFragment_to_articleFragment,
+            bundle
+        )
+    }
+
+    private fun FragmentSearchNewsBinding.setupRecyclerViewAdapter() {
+        newsAdapter = NewsAdapter()
+        rvSearchNews.apply {
+            adapter = newsAdapter
+            layoutManager = LinearLayoutManager(activity)
         }
     }
 
@@ -89,27 +101,19 @@ class SearchNewsFragment: ViewBindingFragment<FragmentSearchNewsBinding>(Fragmen
         }
     }
 
-    private fun handleLoading() {
+    private fun FragmentSearchNewsBinding.handleLoading() {
         showProgressBar()
     }
 
     private fun hideProgressBar() {
-        binding.paginationProgressBar.visibility = View.INVISIBLE
+        viewBinding.paginationProgressBar.visibility = View.INVISIBLE
     }
 
-    private fun showProgressBar() {
-        binding.paginationProgressBar.visibility = View.VISIBLE
+    private fun FragmentSearchNewsBinding.showProgressBar() {
+        paginationProgressBar.visibility = View.VISIBLE
     }
 
-    private fun setupRecyclerViewAdapter() {
-        newsAdapter = NewsAdapter()
-        binding.rvSearchNews.apply {
-            adapter = newsAdapter
-            layoutManager = LinearLayoutManager(activity)
-        }
-    }
-
-    private fun <T> collectLatestLifeCycleFlow(flow: Flow<T>, collector: suspend (T) -> Unit) {
+    private fun <T> collectLatestLifecycleFlow(flow: Flow<T>, collector: suspend (T) -> Unit) {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 flow.collectLatest(collector)

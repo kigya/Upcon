@@ -14,15 +14,15 @@
 
 ## Tech Stack
 
-### Architectural Components
-### Room
-### Coroutines
-### Retrofit
-### Navigation Components
-### Glide
-### Hilt
-### ViewBindingPropertyDelegate
-###R ounded ImageView
+##### Architectural Components
+##### Room
+##### Coroutines
+##### Retrofit
+##### Navigation Components
+##### Glide
+##### Hilt
+##### ViewBindingPropertyDelegate
+##### Rounded ImageView
 
 
 ## Demo

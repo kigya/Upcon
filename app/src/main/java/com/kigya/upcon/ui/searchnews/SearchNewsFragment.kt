@@ -34,7 +34,7 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
     private val viewBinding by viewBinding(FragmentSearchNewsBinding::bind)
     private lateinit var newsAdapter: NewsAdapter
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle? ) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         with(viewBinding) {
@@ -50,17 +50,10 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
         }
 
         var job: Job? = null
-        viewBinding.etSearch.addTextChangedListener { editable ->
-            job?.cancel()
-            job = search(editable)
-        }
+        viewBinding.etSearch.setOnQueryTextListener(viewModel.listener)
 
         newsAdapter.setOnItemClickListener(this::navigateUp)
 
-    }
-
-    private fun search(editable: Editable?) = mainScopeDelayLaunch {
-        editable?.let { if (editable.isNotEmpty()) viewModel.searchNews(editable.toString()) }
     }
 
     private fun navigateUp(it: Article) {

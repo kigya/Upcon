@@ -1,12 +1,15 @@
 package com.kigya.upcon.ui
 
+import android.widget.SearchView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kigya.upcon.models.Article
 import com.kigya.upcon.models.NewsResponse
 import com.kigya.upcon.repository.NewsRepository
 import com.kigya.upcon.utils.Resource
+import com.kigya.upcon.utils.mainScopeDelayLaunch
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -30,6 +33,7 @@ class NewsViewModel @Inject constructor(
 
     private var _breakingNewsPage = 1
     private var _searchNewsPage = 1
+    private var job: Job? = null
 
     init {
         getBreakingNews("us")
@@ -43,7 +47,7 @@ class NewsViewModel @Inject constructor(
         }
     }
 
-    fun searchNews(query: String) {
+    private fun searchNews(query: String) {
         viewModelScope.launch {
             _searchNews.value = Resource.Loading()
             val response = newsRepository.searchNews(query, _searchNewsPage)
@@ -72,5 +76,23 @@ class NewsViewModel @Inject constructor(
             }
         }
         return Resource.Error(response.message())
+    }
+
+    private fun search(string: String?) = mainScopeDelayLaunch {
+        string?.let { if (string.isNotEmpty()) searchNews(string) }
+    }
+
+    val listener = object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+        override fun onQueryTextSubmit(query: String?): Boolean {
+            job?.cancel()
+            job = search(query)
+            return true
+        }
+
+        override fun onQueryTextChange(newText: String?): Boolean {
+            job?.cancel()
+            job = search(newText)
+            return true
+        }
     }
 }

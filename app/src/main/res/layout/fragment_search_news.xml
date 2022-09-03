@@ -5,14 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <EditText
+    <androidx.appcompat.widget.SearchView
         android:id="@+id/etSearch"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Search..."
+        android:layout_marginTop="12dp"
+        android:background="@drawable/search_background"
+        android:closeIcon="@drawable/ic_close"
+        android:iconifiedByDefault="false"
+        android:queryHint="Search for a country"
+        android:searchIcon="@drawable/ic_search"
+        android:theme="@style/ThemeOverlay.search"
+       app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
